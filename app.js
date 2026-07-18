@@ -101,37 +101,38 @@ async function sendCommand(command, params, { target = "game", timeoutMs = 15000
 function waitForResult(commandId, timeoutMs) {
 	return new Promise((resolve) => {
 		let settled = false;
+		const pollEveryMs = 1000;
+		const deadline = Date.now() + timeoutMs;
 
-		const channel = supabaseClient
-			.channel("cmd-" + commandId)
-			.on(
-				"postgres_changes",
-				{
-					event: "UPDATE",
-					schema: "public",
-					table: "console_commands",
-					filter: "id=eq." + commandId,
-				},
-				(payload) => {
-					const row = payload.new;
-					if (row.status === "done" || row.status === "error") {
-						finish(row.result || { ok: row.status === "done", message: "(pas de détail)" });
-					}
-				}
-			)
-			.subscribe();
+		async function check() {
+			if (settled) return;
 
-		const timer = setTimeout(() => {
-			finish({ ok: false, message: "Pas de réponse du serveur (timeout)" });
-		}, timeoutMs);
+			const { data, error } = await supabaseClient
+				.from("console_commands")
+				.select("status,result")
+				.eq("id", commandId)
+				.single();
+
+			if (!error && data && (data.status === "done" || data.status === "error")) {
+				finish(data.result || { ok: data.status === "done", message: "(pas de détail)" });
+				return;
+			}
+
+			if (Date.now() >= deadline) {
+				finish({ ok: false, message: "Pas de réponse du serveur (timeout)" });
+				return;
+			}
+
+			setTimeout(check, pollEveryMs);
+		}
 
 		function finish(result) {
 			if (settled) return;
 			settled = true;
-			clearTimeout(timer);
-			supabaseClient.removeChannel(channel);
 			resolve(result);
 		}
+
+		check();
 	});
 }
 
