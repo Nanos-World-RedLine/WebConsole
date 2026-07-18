@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebConsole</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ======================= ECRAN DE CONNEXION ======================= -->
+<main id="login-screen" class="screen">
+	<form id="login-form" class="login-card">
+		<div class="brand">
+			<span class="brand-dot" aria-hidden="true"></span>
+			<h1>WebConsole</h1>
+		</div>
+		<p class="login-sub">Connexion réservée à l'équipe d'administration</p>
+
+		<label class="field">
+			<span>Email</span>
+			<input type="email" id="login-email" required autocomplete="username">
+		</label>
+		<label class="field">
+			<span>Mot de passe</span>
+			<input type="password" id="login-password" required autocomplete="current-password">
+		</label>
+
+		<button type="submit" class="btn btn-primary">Se connecter</button>
+		<p id="login-error" class="error-text" role="alert"></p>
+	</form>
+</main>
+
+<!-- ============================ TABLEAU DE BORD ============================ -->
+<main id="dashboard" class="screen" hidden>
+
+	<header class="topbar">
+		<div class="brand">
+			<span class="brand-dot" id="conn-dot" aria-hidden="true"></span>
+			<h1>WebConsole</h1>
+		</div>
+		<div class="topbar-right">
+			<span id="conn-label" class="conn-label">connexion…</span>
+			<span id="user-email" class="user-email"></span>
+			<button id="logout-btn" class="btn btn-ghost">Se déconnecter</button>
+		</div>
+	</header>
+
+	<div class="grid">
+
+		<!-- ---- Joueurs connectés ---- -->
+		<section class="panel">
+			<div class="panel-head">
+				<h2>Joueurs connectés</h2>
+				<button id="refresh-players-btn" class="btn btn-ghost btn-sm">Actualiser</button>
+			</div>
+			<table class="players-table">
+				<thead>
+					<tr><th>Nom</th><th>SteamID</th><th>Ping</th><th></th></tr>
+				</thead>
+				<tbody id="players-body">
+					<tr><td colspan="4" class="muted">Cliquez sur « Actualiser »</td></tr>
+				</tbody>
+			</table>
+		</section>
+
+		<!-- ---- Actions ---- -->
+		<section class="panel">
+			<div class="panel-head"><h2>Actions</h2></div>
+
+			<form id="broadcast-form" class="action-form">
+				<label class="field">
+					<span>Message à diffuser</span>
+					<input type="text" id="broadcast-message" placeholder="Message pour tous les joueurs" required>
+				</label>
+				<button type="submit" class="btn btn-primary btn-sm">Diffuser</button>
+			</form>
+
+			<form id="kickban-form" class="action-form">
+				<label class="field">
+					<span>SteamID du joueur</span>
+					<input type="text" id="kickban-steamid" placeholder="765611..." required>
+				</label>
+				<label class="field">
+					<span>Raison</span>
+					<input type="text" id="kickban-reason" placeholder="Raison (optionnelle)">
+				</label>
+				<div class="btn-row">
+					<button type="submit" data-command="kick" class="btn btn-warn btn-sm">Exclure</button>
+					<button type="submit" data-command="ban" class="btn btn-danger btn-sm">Bannir</button>
+				</div>
+			</form>
+
+			<form id="restart-form" class="action-form">
+				<label class="field-checkbox">
+					<input type="checkbox" id="restart-confirm">
+					<span>Je confirme vouloir redémarrer le serveur</span>
+				</label>
+				<button type="submit" class="btn btn-danger btn-sm">Redémarrer le serveur</button>
+			</form>
+		</section>
+
+		<!-- ---- Journal ---- -->
+		<section class="panel panel-wide">
+			<div class="panel-head"><h2>Journal</h2></div>
+			<div id="log-panel" class="log-panel" aria-live="polite"></div>
+		</section>
+
+	</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+:root {
+	--bg: #12141a;
+	--surface: #1a1e28;
+	--surface-raised: #212636;
+	--border: #2b3142;
+	--border-strong: #3a4257;
+
+	--text: #e7e9f0;
+	--text-muted: #8890a4;
+	--text-faint: #5b6479;
+
+	--accent: #4fd6c8;
+	--accent-dim: #1f5a54;
+	--accent-text: #0d2a26;
+
+	--warn: #e0a840;
+	--warn-dim: #4a3a17;
+
+	--danger: #e2604f;
+	--danger-dim: #4a2019;
+
+	--font-display: "IBM Plex Sans", sans-serif;
+	--font-mono: "IBM Plex Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-display);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.screen { min-height: 100vh; }
+
+/* ---------------------------- Marque / logo ---------------------------- */
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+
+.brand-dot {
+	width: 9px; height: 9px; border-radius: 50%;
+	background: var(--text-faint);
+	box-shadow: 0 0 0 3px transparent;
+	transition: background 0.2s, box-shadow 0.2s;
+}
+.brand-dot.online {
+	background: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.brand-dot.offline { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-dim); }
+
+/* ------------------------------ Connexion ------------------------------ */
+
+#login-screen { display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+.login-card {
+	width: 100%; max-width: 360px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 32px 28px;
+}
+
+.login-sub { color: var(--text-muted); font-size: 13px; margin: 6px 0 24px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.field span { font-size: 12px; color: var(--text-muted); }
+
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="password"] {
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 10px 12px;
+	color: var(--text);
+	font-family: var(--font-display);
+	font-size: 14px;
+}
+.field input:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.field-checkbox { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+
+.error-text { color: var(--danger); font-size: 13px; min-height: 18px; margin: 12px 0 0; }
+
+/* -------------------------------- Boutons -------------------------------- */
+
+.btn {
+	border: 1px solid transparent;
+	border-radius: 8px;
+	padding: 10px 16px;
+	font-family: var(--font-display);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: filter 0.15s, background 0.15s;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn-sm { padding: 8px 12px; font-size: 13px; }
+
+.btn-primary { background: var(--accent); color: var(--accent-text); }
+.btn-warn { background: var(--warn-dim); color: var(--warn); border-color: var(--warn-dim); }
+.btn-danger { background: var(--danger-dim); color: var(--danger); border-color: var(--danger-dim); }
+.btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+
+.btn-row { display: flex; gap: 10px; }
+
+/* -------------------------------- Tableau de bord -------------------------------- */
+
+.topbar {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 18px 28px;
+	border-bottom: 1px solid var(--border);
+}
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.conn-label { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+.user-email { font-size: 13px; color: var(--text-muted); }
+
+.grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	padding: 24px 28px 40px;
+	max-width: 1100px;
+	margin: 0 auto;
+}
+.panel-wide { grid-column: 1 / -1; }
+
+@media (max-width: 780px) {
+	.grid { grid-template-columns: 1fr; padding: 20px; }
+}
+
+.panel {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 18px 20px;
+}
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.panel-head h2 { font-size: 15px; font-weight: 600; margin: 0; }
+
+.muted { color: var(--text-faint); }
+
+/* -------------------------------- Table joueurs -------------------------------- */
+
+.players-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.players-table th {
+	text-align: left; color: var(--text-faint); font-weight: 500;
+	font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+	padding: 6px 8px; border-bottom: 1px solid var(--border);
+}
+.players-table td {
+	padding: 8px; border-bottom: 1px solid var(--border);
+	font-family: var(--font-mono); font-size: 13px;
+}
+.players-table td.name { font-family: var(--font-display); }
+.players-table button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 12px; }
+
+/* -------------------------------- Formulaires d'action -------------------------------- */
+
+.action-form {
+	padding-bottom: 16px; margin-bottom: 16px;
+	border-bottom: 1px solid var(--border);
+}
+.action-form:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+/* -------------------------------- Journal -------------------------------- */
+
+.log-panel {
+	height: 260px;
+	overflow-y: auto;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 12px 14px;
+	font-family: var(--font-mono);
+	font-size: 12.5px;
+}
+
+.log-line { display: flex; gap: 10px; padding: 3px 0; }
+.log-time { color: var(--text-faint); flex-shrink: 0; }
+.log-msg { color: var(--text-muted); }
+.log-line.level-warn .log-msg { color: var(--warn); }
+.log-line.level-error .log-msg { color: var(--danger); }
