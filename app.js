@@ -9,8 +9,8 @@
  * par compte admin.
  */
 
-const SUPABASE_URL = "https://jcwktlyuacxuimwyqrfu.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_dJaS636nTjdFY9uX7r-kRA_2PgMwwR3";
+const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
+const SUPABASE_ANON_KEY = "VOTRE_CLE_PUBLIQUE_ANON_OU_PUBLISHABLE";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -25,7 +25,6 @@ const userEmailLabel = el("user-email");
 const connDot = el("conn-dot");
 const connLabel = el("conn-label");
 const logPanel = el("log-panel");
-const playersBody = el("players-body");
 
 let currentUser = null;
 
@@ -85,10 +84,10 @@ function setConnectionState(online) {
 // statut de LA commande qu'on vient de créer plutôt que de faire du
 // polling depuis le navigateur.
 
-async function sendCommand(command, params, { timeoutMs = 15000 } = {}) {
+async function sendCommand(command, params, { target = "game", timeoutMs = 15000 } = {}) {
 	const { data, error } = await supabaseClient
 		.from("console_commands")
-		.insert({ command, params, issued_by: currentUser.id })
+		.insert({ command, params, target, issued_by: currentUser.id })
 		.select()
 		.single();
 
@@ -140,79 +139,33 @@ function waitForResult(commandId, timeoutMs) {
 // Actions
 // ============================================================================
 
-el("broadcast-form").addEventListener("submit", async (e) => {
+el("console-form").addEventListener("submit", async (e) => {
 	e.preventDefault();
-	const message = el("broadcast-message").value.trim();
-	if (!message) return;
-	const result = await sendCommand("broadcast", { message });
+	const text = el("console-input").value.trim();
+	if (!text) return;
+	const result = await sendCommand(text, {}, { target: "host" });
 	appendLocalStatus(result);
-	if (result.ok) el("broadcast-message").value = "";
+	if (result.ok) el("console-input").value = "";
 });
 
-el("kickban-form").addEventListener("submit", async (e) => {
-	e.preventDefault();
-	const command = e.submitter?.dataset.command;
-	if (command !== "kick" && command !== "ban") return;
+// ---- Contrôle du processus sur le VPS (target: "host", traité par vps-agent) ----
 
-	const steam_id = el("kickban-steamid").value.trim();
-	const reason = el("kickban-reason").value.trim();
-	if (!steam_id) return;
-
-	if (command === "ban" && !confirm("Confirmer le bannissement de " + steam_id + " ?")) return;
-
-	const result = await sendCommand(command, { steam_id, reason });
+el("server-start-btn").addEventListener("click", async () => {
+	const result = await sendCommand("server_start", {}, { target: "host" });
 	appendLocalStatus(result);
 });
 
-el("restart-form").addEventListener("submit", async (e) => {
-	e.preventDefault();
-	if (!el("restart-confirm").checked) return;
-	if (!confirm("Le serveur va redémarrer et déconnecter tous les joueurs. Confirmer ?")) return;
-
-	const result = await sendCommand("restart", { confirm: true });
+el("server-stop-btn").addEventListener("click", async () => {
+	if (!confirm("Le processus du serveur va être arrêté. Confirmer ?")) return;
+	const result = await sendCommand("server_stop", {}, { target: "host" });
 	appendLocalStatus(result);
-	el("restart-confirm").checked = false;
 });
 
-el("refresh-players-btn").addEventListener("click", async () => {
-	playersBody.innerHTML = '<tr><td colspan="4" class="muted">Chargement…</td></tr>';
-	const result = await sendCommand("list_players", {});
-
-	if (!result.ok || !result.data) {
-		playersBody.innerHTML = '<tr><td colspan="4" class="muted">' + escapeHtml(result.message || "Erreur") + "</td></tr>";
-		return;
-	}
-
-	renderPlayers(result.data);
+el("server-process-restart-btn").addEventListener("click", async () => {
+	if (!confirm("Le processus du serveur va être relancé (redémarrage complet, pas juste un rechargement des packages). Confirmer ?")) return;
+	const result = await sendCommand("server_process_restart", {}, { target: "host" });
+	appendLocalStatus(result);
 });
-
-function renderPlayers(players) {
-	if (!players.length) {
-		playersBody.innerHTML = '<tr><td colspan="4" class="muted">Aucun joueur connecté</td></tr>';
-		return;
-	}
-
-	playersBody.innerHTML = players
-		.map(
-			(p) => `
-		<tr>
-			<td class="name">${escapeHtml(p.name)}</td>
-			<td>${escapeHtml(p.steam_id)}</td>
-			<td>${escapeHtml(String(p.ping))} ms</td>
-			<td><button data-steamid="${escapeHtml(p.steam_id)}" class="kick-inline">Exclure</button></td>
-		</tr>`
-		)
-		.join("");
-
-	playersBody.querySelectorAll(".kick-inline").forEach((btn) => {
-		btn.addEventListener("click", async () => {
-			const steam_id = btn.dataset.steamid;
-			const result = await sendCommand("kick", { steam_id, reason: "Exclu depuis la liste des joueurs" });
-			appendLocalStatus(result);
-			if (result.ok) el("refresh-players-btn").click();
-		});
-	});
-}
 
 // ============================================================================
 // Journal (logs en temps réel via Supabase Realtime)
