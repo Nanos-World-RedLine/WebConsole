@@ -23,6 +23,8 @@
 	--status-green-dim: #1c4a2c;
 
 	--log-script: #6fb3f2;
+	--log-info: #8fa8d6;
+	--log-chat: #d98fc4;
 
 	--font-display: "IBM Plex Sans", sans-serif;
 	--font-mono: "IBM Plex Mono", monospace;
@@ -199,17 +201,23 @@ body {
 .log-line { display: flex; gap: 10px; padding: 3px 0; }
 .log-time { color: var(--text-faint); flex-shrink: 0; }
 .log-msg { color: var(--text-muted); overflow-wrap: anywhere; }
-.log-line.level-warn .log-msg { color: var(--warn); }
+
+/* Les lignes d'erreur/avertissement/chat sont colorées en entier, pas
+   seulement le mot-clé - plus facile à repérer dans le flux */
 .log-line.level-error .log-msg { color: var(--danger); }
+.log-line.level-warn .log-msg { color: var(--warn); }
+.log-line.level-chat .log-msg { color: var(--log-chat); }
 
 /* Niveaux natifs de la console nanos world, détectés dans le texte du log */
 .lvl { font-weight: 500; }
+.lvl-info { color: var(--log-info); }
 .lvl-script { color: var(--log-script); }
 .lvl-warn { color: var(--warn); }
 .lvl-error { color: var(--danger); }
 .lvl-success { color: var(--status-green); }
 .lvl-debug { color: var(--text-faint); }
 .lvl-console { color: var(--accent); }
+.lvl-chat { color: var(--log-chat); }
 
 /* Tags entre crochets : [rp-core], [DB], [S_API]... */
 .log-tag { color: var(--text-faint); }
