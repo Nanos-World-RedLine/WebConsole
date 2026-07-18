@@ -2,15 +2,17 @@
  * WebConsole / site / app.js
  * ===========================
  * Ce fichier est PUBLIC (dépôt GitHub Pages) : ne jamais y mettre autre
- * chose que la clé "anon" de Supabase, qui est conçue pour être publique.
- * Toute la protection réelle vient des règles RLS définies côté base
- * (voir backend/schema.sql) et de l'authentification par compte admin.
+ * chose que la clé PUBLIQUE de Supabase ("anon" ou, sur le nouveau format
+ * de clés, "publishable" - Settings > API Keys dans le dashboard), qui est
+ * conçue pour être publique. Toute la protection réelle vient des règles
+ * RLS définies côté base (voir backend/schema.sql) et de l'authentification
+ * par compte admin.
  */
 
 const SUPABASE_URL = "https://jcwktlyuacxuimwyqrfu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_dJaS636nTjdFY9uX7r-kRA_2PgMwwR3";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const el = (id) => document.getElementById(id);
 
@@ -35,7 +37,7 @@ loginForm.addEventListener("submit", async (e) => {
 	e.preventDefault();
 	loginError.textContent = "";
 
-	const { error } = await supabase.auth.signInWithPassword({
+	const { error } = await supabaseClient.auth.signInWithPassword({
 		email: el("login-email").value,
 		password: el("login-password").value,
 	});
@@ -46,10 +48,10 @@ loginForm.addEventListener("submit", async (e) => {
 });
 
 logoutBtn.addEventListener("click", async () => {
-	await supabase.auth.signOut();
+	await supabaseClient.auth.signOut();
 });
 
-supabase.auth.onAuthStateChange((_event, session) => {
+supabaseClient.auth.onAuthStateChange((_event, session) => {
 	currentUser = session ? session.user : null;
 	renderAuthState();
 	if (currentUser) {
@@ -84,7 +86,7 @@ function setConnectionState(online) {
 // polling depuis le navigateur.
 
 async function sendCommand(command, params, { timeoutMs = 15000 } = {}) {
-	const { data, error } = await supabase
+	const { data, error } = await supabaseClient
 		.from("console_commands")
 		.insert({ command, params, issued_by: currentUser.id })
 		.select()
@@ -101,7 +103,7 @@ function waitForResult(commandId, timeoutMs) {
 	return new Promise((resolve) => {
 		let settled = false;
 
-		const channel = supabase
+		const channel = supabaseClient
 			.channel("cmd-" + commandId)
 			.on(
 				"postgres_changes",
@@ -128,7 +130,7 @@ function waitForResult(commandId, timeoutMs) {
 			if (settled) return;
 			settled = true;
 			clearTimeout(timer);
-			supabase.removeChannel(channel);
+			supabaseClient.removeChannel(channel);
 			resolve(result);
 		}
 	});
@@ -217,7 +219,7 @@ function renderPlayers(players) {
 // ============================================================================
 
 async function loadRecentLogs() {
-	const { data } = await supabase
+	const { data } = await supabaseClient
 		.from("console_logs")
 		.select("*")
 		.order("created_at", { ascending: false })
@@ -229,7 +231,7 @@ async function loadRecentLogs() {
 }
 
 function startRealtimeLogs() {
-	supabase
+	supabaseClient
 		.channel("console-logs-live")
 		.on(
 			"postgres_changes",
