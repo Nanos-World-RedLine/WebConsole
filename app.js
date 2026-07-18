@@ -55,23 +55,73 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 	if (currentUser) {
 		startRealtimeLogs();
 		loadRecentLogs();
+		startStatusPolling();
+	} else {
+		stopStatusPolling();
 	}
 });
 
 function renderAuthState() {
 	const authed = !!currentUser;
-	loginScreen.hidden = authed;
-	dashboard.hidden = !authed;
-	if (authed) {
-		userEmailLabel.textContent = currentUser.email;
-		setConnectionState(true);
+	const target = authed ? dashboard : loginScreen;
+	const other = authed ? loginScreen : dashboard;
+
+	if (authed) userEmailLabel.textContent = currentUser.email;
+
+	// Ne joue la transition que si l'écran change réellement (évite un
+	// flash inutile au premier chargement quand l'état est déjà correct).
+	if (target.hidden) {
+		switchScreen(other, target);
 	}
 }
 
-function setConnectionState(online) {
-	connDot.classList.toggle("online", online);
-	connDot.classList.toggle("offline", !online);
-	connLabel.textContent = online ? "connecté" : "hors ligne";
+function switchScreen(fromEl, toEl) {
+	fromEl.classList.add("screen-exit");
+	setTimeout(() => {
+		fromEl.hidden = true;
+		fromEl.classList.remove("screen-exit");
+
+		toEl.hidden = false;
+		toEl.classList.add("screen-enter");
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => toEl.classList.remove("screen-enter"));
+		});
+	}, 280);
+}
+
+// ---- Statut réel du serveur (publié par vps-agent dans server_status) ----
+
+let statusPollTimer = null;
+
+function startStatusPolling() {
+	pollServerStatus();
+	statusPollTimer = setInterval(pollServerStatus, 4000);
+}
+
+function stopStatusPolling() {
+	if (statusPollTimer) clearInterval(statusPollTimer);
+	statusPollTimer = null;
+}
+
+async function pollServerStatus() {
+	const { data, error } = await supabaseClient
+		.from("server_status")
+		.select("status")
+		.eq("id", 1)
+		.single();
+
+	applyServerStatus(!error && data ? data.status : "unknown");
+}
+
+function applyServerStatus(status) {
+	connDot.className = "brand-dot status-" + status;
+	connLabel.textContent =
+		{
+			running: "en ligne",
+			stopped: "hors ligne",
+			starting: "démarrage…",
+			stopping: "arrêt…",
+		}[status] || "statut inconnu";
 }
 
 // ============================================================================
