@@ -9,8 +9,8 @@
  * par compte admin.
  */
 
-const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
-const SUPABASE_ANON_KEY = "VOTRE_CLE_PUBLIQUE_ANON_OU_PUBLISHABLE";
+const SUPABASE_URL = "https://jcwktlyuacxuimwyqrfu.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_dJaS636nTjdFY9uX7r-kRA_2PgMwwR3";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
