@@ -22,6 +22,8 @@
 	--status-green: #4fd67a;
 	--status-green-dim: #1c4a2c;
 
+	--log-script: #6fb3f2;
+
 	--font-display: "IBM Plex Sans", sans-serif;
 	--font-mono: "IBM Plex Mono", monospace;
 
@@ -199,6 +201,18 @@ body {
 .log-msg { color: var(--text-muted); overflow-wrap: anywhere; }
 .log-line.level-warn .log-msg { color: var(--warn); }
 .log-line.level-error .log-msg { color: var(--danger); }
+
+/* Niveaux natifs de la console nanos world, détectés dans le texte du log */
+.lvl { font-weight: 500; }
+.lvl-script { color: var(--log-script); }
+.lvl-warn { color: var(--warn); }
+.lvl-error { color: var(--danger); }
+.lvl-success { color: var(--status-green); }
+.lvl-debug { color: var(--text-faint); }
+.lvl-console { color: var(--accent); }
+
+/* Tags entre crochets : [rp-core], [DB], [S_API]... */
+.log-tag { color: var(--text-faint); }
 
 .console-input-row {
 	display: flex;
