@@ -230,7 +230,12 @@ async function loadRecentLogs() {
 	}
 }
 
+let logsSubscribed = false;
+
 function startRealtimeLogs() {
+	if (logsSubscribed) return;
+	logsSubscribed = true;
+
 	supabaseClient
 		.channel("console-logs-live")
 		.on(
