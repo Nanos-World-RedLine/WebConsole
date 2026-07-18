@@ -51,56 +51,30 @@
 
 	<div class="grid">
 
-		<!-- ---- Joueurs connectés ---- -->
+		<!-- ---- Commande libre ---- -->
 		<section class="panel">
-			<div class="panel-head">
-				<h2>Joueurs connectés</h2>
-				<button id="refresh-players-btn" class="btn btn-ghost btn-sm">Actualiser</button>
-			</div>
-			<table class="players-table">
-				<thead>
-					<tr><th>Nom</th><th>SteamID</th><th>Ping</th><th></th></tr>
-				</thead>
-				<tbody id="players-body">
-					<tr><td colspan="4" class="muted">Cliquez sur « Actualiser »</td></tr>
-				</tbody>
-			</table>
+			<div class="panel-head"><h2>Commande</h2></div>
+			<form id="console-form" class="action-form">
+				<label class="field">
+					<span>Tapez une commande, comme sur le terminal du serveur</span>
+					<input type="text" id="console-input" placeholder="ex: kick 76561199373856702, package reload all, restart..." required autocomplete="off">
+				</label>
+				<button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+			</form>
 		</section>
 
-		<!-- ---- Actions ---- -->
+		<!-- ---- Processus du serveur (VPS) ---- -->
 		<section class="panel">
-			<div class="panel-head"><h2>Actions</h2></div>
-
-			<form id="broadcast-form" class="action-form">
-				<label class="field">
-					<span>Message à diffuser</span>
-					<input type="text" id="broadcast-message" placeholder="Message pour tous les joueurs" required>
-				</label>
-				<button type="submit" class="btn btn-primary btn-sm">Diffuser</button>
-			</form>
-
-			<form id="kickban-form" class="action-form">
-				<label class="field">
-					<span>SteamID du joueur</span>
-					<input type="text" id="kickban-steamid" placeholder="765611..." required>
-				</label>
-				<label class="field">
-					<span>Raison</span>
-					<input type="text" id="kickban-reason" placeholder="Raison (optionnelle)">
-				</label>
-				<div class="btn-row">
-					<button type="submit" data-command="kick" class="btn btn-warn btn-sm">Exclure</button>
-					<button type="submit" data-command="ban" class="btn btn-danger btn-sm">Bannir</button>
-				</div>
-			</form>
-
-			<form id="restart-form" class="action-form">
-				<label class="field-checkbox">
-					<input type="checkbox" id="restart-confirm">
-					<span>Je confirme vouloir redémarrer le serveur</span>
-				</label>
-				<button type="submit" class="btn btn-danger btn-sm">Redémarrer le serveur</button>
-			</form>
+			<div class="panel-head"><h2>Processus du serveur (VPS)</h2></div>
+			<p class="muted panel-note">
+				Démarre/arrête/relance réellement le processus sur le VPS,
+				y compris s'il est complètement éteint.
+			</p>
+			<div class="btn-row btn-row-wrap">
+				<button type="button" id="server-start-btn" class="btn btn-primary btn-sm">Démarrer</button>
+				<button type="button" id="server-stop-btn" class="btn btn-danger btn-sm">Arrêter</button>
+				<button type="button" id="server-process-restart-btn" class="btn btn-danger btn-sm">Redémarrer (processus)</button>
+			</div>
 		</section>
 
 		<!-- ---- Journal ---- -->
