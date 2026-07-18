@@ -1,7 +1,6 @@
 /*
  * WebConsole / site / app.js
  * ===========================
- * Ce fichier est PUBLIC (dépôt GitHub Pages) : ne jamais y mettre autre
  * chose que la clé PUBLIQUE de Supabase ("anon" ou, sur le nouveau format
  * de clés, "publishable" - Settings > API Keys dans le dashboard), qui est
  * conçue pour être publique. Toute la protection réelle vient des règles
@@ -144,28 +143,44 @@ el("console-form").addEventListener("submit", async (e) => {
 	e.preventDefault();
 	const text = el("console-input").value.trim();
 	if (!text) return;
+
+	const input = el("console-input");
+	const button = e.target.querySelector("button[type=submit]");
+	input.disabled = true;
+	button.disabled = true;
+
 	const result = await sendCommand(text, {}, { target: "host" });
 	appendLocalStatus(result);
-	if (result.ok) el("console-input").value = "";
+	if (result.ok) input.value = "";
+
+	input.disabled = false;
+	button.disabled = false;
+	input.focus();
 });
 
 // ---- Contrôle du processus sur le VPS (target: "host", traité par vps-agent) ----
 
-el("server-start-btn").addEventListener("click", async () => {
+el("server-start-btn").addEventListener("click", async (e) => {
+	e.target.disabled = true;
 	const result = await sendCommand("server_start", {}, { target: "host" });
 	appendLocalStatus(result);
+	e.target.disabled = false;
 });
 
-el("server-stop-btn").addEventListener("click", async () => {
+el("server-stop-btn").addEventListener("click", async (e) => {
 	if (!confirm("Le processus du serveur va être arrêté. Confirmer ?")) return;
+	e.target.disabled = true;
 	const result = await sendCommand("server_stop", {}, { target: "host" });
 	appendLocalStatus(result);
+	e.target.disabled = false;
 });
 
-el("server-process-restart-btn").addEventListener("click", async () => {
+el("server-process-restart-btn").addEventListener("click", async (e) => {
 	if (!confirm("Le processus du serveur va être relancé (redémarrage complet, pas juste un rechargement des packages). Confirmer ?")) return;
+	e.target.disabled = true;
 	const result = await sendCommand("server_process_restart", {}, { target: "host" });
 	appendLocalStatus(result);
+	e.target.disabled = false;
 });
 
 // ============================================================================
