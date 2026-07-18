@@ -51,14 +51,13 @@
 
 	<div class="grid">
 
-		<!-- ---- Commande libre ---- -->
-		<section class="panel">
-			<div class="panel-head"><h2>Commande</h2></div>
-			<form id="console-form" class="action-form">
-				<label class="field">
-					<span>Tapez une commande, comme sur le terminal du serveur</span>
-					<input type="text" id="console-input" placeholder="ex: kick 76561199373856702, package reload all, restart..." required autocomplete="off">
-				</label>
+		<!-- ---- Console (journal + commande) ---- -->
+		<section class="panel console-panel">
+			<div class="panel-head"><h2>Console</h2></div>
+			<div id="log-panel" class="log-panel" aria-live="polite"></div>
+			<form id="console-form" class="console-input-row">
+				<span class="console-prompt" aria-hidden="true">&gt;</span>
+				<input type="text" id="console-input" placeholder="Tapez une commande, comme sur le terminal du serveur" required autocomplete="off">
 				<button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
 			</form>
 		</section>
@@ -75,12 +74,6 @@
 				<button type="button" id="server-stop-btn" class="btn btn-danger btn-sm">Arrêter</button>
 				<button type="button" id="server-process-restart-btn" class="btn btn-danger btn-sm">Redémarrer (processus)</button>
 			</div>
-		</section>
-
-		<!-- ---- Journal ---- -->
-		<section class="panel panel-wide">
-			<div class="panel-head"><h2>Journal</h2></div>
-			<div id="log-panel" class="log-panel" aria-live="polite"></div>
 		</section>
 
 	</div>
