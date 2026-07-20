@@ -254,3 +254,21 @@ body {
 	.console-input-row { flex-wrap: wrap; }
 	.console-input-row .btn { width: 100%; }
 }
+
+#config-tab { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+  .cfg-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cfg-spacer { flex: 1; }
+  .cfg-modified { color: #f5a623; font-size: 12px; }
+  #cfg-editor {
+    flex: 1; min-height: 420px; resize: vertical;
+    font-family: "Consolas", "Courier New", monospace; font-size: 13px;
+    background: #14161a; color: #d6dae2;
+    border: 1px solid #2b303b; border-radius: 6px; padding: 10px;
+    tab-size: 4; white-space: pre; overflow: auto;
+  }
+  .cfg-status { min-height: 20px; font-size: 13px; color: #8a91a0; }
+  .cfg-status.ok { color: #3ecf8e; }
+  .cfg-status.err { color: #ff5c5c; }
+  .cfg-status.warn { color: #f5a623; }
+  .cfg-primary { background: #4f8cff; color: #fff; border-color: #4f8cff; }
+  .cfg-danger { border-color: #f5a623; color: #f5a623; }
