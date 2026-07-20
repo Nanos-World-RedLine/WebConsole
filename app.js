@@ -56,6 +56,13 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 		startRealtimeLogs();
 		loadRecentLogs();
 		startStatusPolling();
+		// L'onglet config ne doit JAMAIS pouvoir casser le login : on
+		// l'initialise dans un try/catch isolé.
+		try {
+			configTabInit();
+		} catch (err) {
+			console.error("[config-tab] init impossible :", err);
+		}
 	} else {
 		stopStatusPolling();
 	}
@@ -327,158 +334,134 @@ function escapeHtml(str) {
 	return div.innerHTML;
 }
 
+// ============================================================================
+// Onglet Config.toml
+// ============================================================================
+//
+// Traité par vps-agent v3 : commandes config_read / config_write /
+// config_backups / config_restore, envoyées via sendCommand (target=host)
+// exactement comme les autres commandes. La réponse de l'agent arrive dans
+// console_commands.result.
 
-* ---- Onglet Config.toml -------------------------------------------------
-   Envoie des commandes target=host que l'agent v3 intercepte :
-   config_read, config_write, config_backups, config_backup_get,
-   config_restore. La réponse arrive dans console_commands.result.       */
- 
-const CFG_POLL_MS = 1000;      // fréquence de vérification du résultat
-const CFG_TIMEOUT_MS = 45000;  // l'agent poll toutes les 3s + restart éventuel
- 
-async function configCommand(command, params = {}) {
-  const { data: userData } = await supabaseClient.auth.getUser();
-  const { data: row, error } = await supabaseClient
-    .from("console_commands")
-    .insert({
-      command,
-      params,
-      target: "host",
-      issued_by: userData && userData.user ? userData.user.email : null,
-    })
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
- 
-  const start = Date.now();
-  while (Date.now() - start < CFG_TIMEOUT_MS) {
-    await new Promise((r) => setTimeout(r, CFG_POLL_MS));
-    const { data } = await supabaseClient
-      .from("console_commands")
-      .select("status,result")
-      .eq("id", row.id)
-      .single();
-    if (data && (data.status === "done" || data.status === "error")) {
-      const result = data.result || {};
-      if (data.status === "error" || result.ok === false) {
-        const err = new Error(result.message || "Erreur agent");
-        err.result = result;
-        throw err;
-      }
-      return result;
-    }
-  }
-  throw new Error("Timeout : l'agent n'a pas répondu (est-il lancé ?)");
-}
- 
-/* ---- État de l'onglet ---- */
+const CFG_TIMEOUT_MS = 45000; // l'agent poll toutes les ~3 s + restart éventuel
+
 let cfgMtime = null;
 let cfgDirty = false;
- 
+let cfgInitDone = false;
+
+function configCommand(command, params = {}) {
+	return sendCommand(command, params, { target: "host", timeoutMs: CFG_TIMEOUT_MS });
+}
+
 function cfgStatus(msg, cls = "") {
-  const el = document.getElementById("cfg-status");
-  el.textContent = msg;
-  el.className = "cfg-status " + cls;
+	const box = el("cfg-status");
+	box.textContent = msg;
+	box.className = "cfg-status " + cls;
 }
- 
+
 function cfgSetDirty(v) {
-  cfgDirty = v;
-  document.getElementById("cfg-modified").hidden = !v;
+	cfgDirty = v;
+	el("cfg-modified").hidden = !v;
 }
- 
+
 async function cfgLoad() {
-  cfgStatus("Chargement du Config.toml…");
-  try {
-    const r = await configCommand("config_read");
-    document.getElementById("cfg-editor").value = r.content;
-    cfgMtime = r.mtime;
-    cfgSetDirty(false);
-    cfgStatus("Fichier chargé (" + (r.path || "") + ")", "ok");
-    cfgLoadBackups();
-  } catch (e) {
-    cfgStatus("Erreur : " + e.message, "err");
-  }
+	cfgStatus("Chargement du Config.toml…");
+	const r = await configCommand("config_read");
+	if (!r.ok) return cfgStatus("Erreur : " + (r.message || "lecture impossible"), "err");
+	el("cfg-editor").value = r.content;
+	cfgMtime = r.mtime;
+	cfgSetDirty(false);
+	cfgStatus("Fichier chargé (" + (r.path || "") + ")", "ok");
+	cfgLoadBackups();
 }
- 
+
 async function cfgSave(restart, force = false) {
-  if (restart && !confirm("Sauvegarder puis redémarrer le serveur ?\nLes joueurs connectés seront déconnectés.")) return;
-  cfgStatus(restart ? "Sauvegarde + redémarrage…" : "Sauvegarde…");
-  try {
-    const r = await configCommand("config_write", {
-      content: document.getElementById("cfg-editor").value,
-      mtime: cfgMtime,
-      restart,
-      force,
-    });
-    cfgMtime = r.mtime;
-    cfgSetDirty(false);
-    cfgLoadBackups();
-    cfgStatus(
-      r.restarted
-        ? "Sauvegardé + serveur redémarré ✓"
-        : "Sauvegardé ✓ (backup créé). Redémarre le serveur pour appliquer.",
-      "ok"
-    );
-  } catch (e) {
-    if (e.result && e.result.conflict) {
-      if (confirm("⚠ Le fichier a été modifié sur le serveur (SSH ?) pendant ton édition.\n\nOK = écraser avec ta version\nAnnuler = ne rien faire"))
-        return cfgSave(restart, true);
-      return cfgStatus("Sauvegarde annulée (conflit).", "warn");
-    }
-    cfgStatus("Refusé : " + e.message, "err"); // ex: "TOML invalide : ..."
-  }
+	if (restart && !confirm("Sauvegarder puis redémarrer le serveur ?\nLes joueurs connectés seront déconnectés.")) return;
+	cfgStatus(restart ? "Sauvegarde + redémarrage…" : "Sauvegarde…");
+
+	const r = await configCommand("config_write", {
+		content: el("cfg-editor").value,
+		mtime: cfgMtime,
+		restart: restart,
+		force: force,
+	});
+
+	if (r.conflict) {
+		if (confirm("Le fichier a été modifié sur le serveur (SSH ?) pendant ton édition.\n\nOK = écraser avec ta version\nAnnuler = ne rien faire"))
+			return cfgSave(restart, true);
+		return cfgStatus("Sauvegarde annulée (conflit).", "warn");
+	}
+	if (!r.ok) return cfgStatus("Refusé : " + r.message, "err"); // ex: "TOML invalide : ..."
+
+	cfgMtime = r.mtime;
+	cfgSetDirty(false);
+	cfgLoadBackups();
+	cfgStatus(
+		r.restarted
+			? "Sauvegardé + serveur redémarré ✓"
+			: "Sauvegardé ✓ (backup créé). Redémarre le serveur pour appliquer.",
+		"ok"
+	);
 }
- 
+
 async function cfgLoadBackups() {
-  try {
-    const r = await configCommand("config_backups");
-    const sel = document.getElementById("cfg-backups");
-    sel.innerHTML = '<option value="">— Backups (' + r.backups.length + ") —</option>";
-    for (const name of r.backups) {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name.replace("Config-", "").replace(".toml", "");
-      sel.appendChild(opt);
-    }
-  } catch (e) { /* silencieux : les backups ne sont pas critiques */ }
+	const r = await configCommand("config_backups");
+	if (!r.ok || !r.backups) return; // silencieux : les backups ne sont pas critiques
+	const sel = el("cfg-backups");
+	sel.innerHTML = '<option value="">— Backups (' + r.backups.length + ") —</option>";
+	for (const name of r.backups) {
+		const opt = document.createElement("option");
+		opt.value = name;
+		opt.textContent = name.replace("Config-", "").replace(".toml", "");
+		sel.appendChild(opt);
+	}
 }
- 
+
 async function cfgRestore() {
-  const name = document.getElementById("cfg-backups").value;
-  if (!name) return cfgStatus("Choisis un backup dans la liste d'abord.", "warn");
-  if (!confirm("Restaurer " + name + " comme Config.toml actif ?\n(L'état actuel sera sauvegardé avant)")) return;
-  cfgStatus("Restauration…");
-  try {
-    await configCommand("config_restore", { name });
-    cfgStatus("Backup restauré ✓ — redémarre le serveur pour appliquer.", "ok");
-    cfgLoad();
-  } catch (e) {
-    cfgStatus("Erreur : " + e.message, "err");
-  }
+	const name = el("cfg-backups").value;
+	if (!name) return cfgStatus("Choisis un backup dans la liste d'abord.", "warn");
+	if (!confirm("Restaurer " + name + " comme Config.toml actif ?\n(L'état actuel sera sauvegardé avant)")) return;
+	cfgStatus("Restauration…");
+	const r = await configCommand("config_restore", { name: name });
+	if (!r.ok) return cfgStatus("Erreur : " + r.message, "err");
+	cfgStatus("Backup restauré ✓ — redémarre le serveur pour appliquer.", "ok");
+	cfgLoad();
 }
- 
-/* ---- À appeler quand le dashboard s'affiche (après login) ---- */
+
+// Appelé à chaque login (voir onAuthStateChange). Les listeners ne sont
+// attachés qu'une seule fois, même en cas de logout/login successifs.
 function configTabInit() {
-  const editor = document.getElementById("cfg-editor");
-  editor.addEventListener("input", () => cfgSetDirty(true));
-  // Tab insère une vraie tabulation au lieu de changer de champ
-  editor.addEventListener("keydown", (e) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const s = editor.selectionStart;
-      editor.setRangeText("\t", s, editor.selectionEnd, "end");
-      cfgSetDirty(true);
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); cfgSave(false); }
-  });
-  document.getElementById("cfg-reload").onclick = () => {
-    if (!cfgDirty || confirm("Abandonner les modifications non sauvegardées ?")) cfgLoad();
-  };
-  document.getElementById("cfg-save").onclick = () => cfgSave(false);
-  document.getElementById("cfg-save-restart").onclick = () => cfgSave(true);
-  document.getElementById("cfg-restore").onclick = () => cfgRestore();
-  window.addEventListener("beforeunload", (e) => { if (cfgDirty) e.preventDefault(); });
- 
-  document.getElementById("config-tab").hidden = false;
-  cfgLoad();
+	el("config-tab").hidden = false;
+	if (cfgInitDone) {
+		cfgLoad();
+		return;
+	}
+	cfgInitDone = true;
+
+	const editor = el("cfg-editor");
+	editor.addEventListener("input", () => cfgSetDirty(true));
+	editor.addEventListener("keydown", (e) => {
+		// Tab insère une vraie tabulation au lieu de changer de champ
+		if (e.key === "Tab") {
+			e.preventDefault();
+			editor.setRangeText("\t", editor.selectionStart, editor.selectionEnd, "end");
+			cfgSetDirty(true);
+		}
+		if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+			e.preventDefault();
+			cfgSave(false);
+		}
+	});
+
+	el("cfg-reload").addEventListener("click", () => {
+		if (!cfgDirty || confirm("Abandonner les modifications non sauvegardées ?")) cfgLoad();
+	});
+	el("cfg-save").addEventListener("click", () => cfgSave(false));
+	el("cfg-save-restart").addEventListener("click", () => cfgSave(true));
+	el("cfg-restore").addEventListener("click", () => cfgRestore());
+	window.addEventListener("beforeunload", (e) => {
+		if (cfgDirty) e.preventDefault();
+	});
+
+	cfgLoad();
 }
