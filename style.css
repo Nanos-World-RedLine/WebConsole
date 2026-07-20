@@ -255,20 +255,67 @@ body {
 	.console-input-row .btn { width: 100%; }
 }
 
-#config-tab { display: flex; flex-direction: column; gap: 8px; height: 100%; }
-  .cfg-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .cfg-spacer { flex: 1; }
-  .cfg-modified { color: #f5a623; font-size: 12px; }
-  #cfg-editor {
-    flex: 1; min-height: 420px; resize: vertical;
-    font-family: "Consolas", "Courier New", monospace; font-size: 13px;
-    background: #14161a; color: #d6dae2;
-    border: 1px solid #2b303b; border-radius: 6px; padding: 10px;
-    tab-size: 4; white-space: pre; overflow: auto;
-  }
-  .cfg-status { min-height: 20px; font-size: 13px; color: #8a91a0; }
-  .cfg-status.ok { color: #3ecf8e; }
-  .cfg-status.err { color: #ff5c5c; }
-  .cfg-status.warn { color: #f5a623; }
-  .cfg-primary { background: #4f8cff; color: #fff; border-color: #4f8cff; }
-  .cfg-danger { border-color: #f5a623; color: #f5a623; }
+/* -------------------------------- Onglet Config.toml -------------------------------- */
+
+.cfg-head { flex-wrap: wrap; gap: 12px; }
+
+.cfg-modified {
+	color: var(--warn);
+	font-size: 12px;
+	font-family: var(--font-mono);
+	font-weight: 400;
+	margin-left: 8px;
+}
+
+.cfg-select {
+	background: var(--bg);
+	color: var(--text-muted);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 7px 10px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	max-width: 210px;
+}
+.cfg-select:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+#cfg-editor {
+	width: 100%;
+	min-height: 440px;
+	resize: vertical;
+	background: var(--bg);
+	color: var(--text);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 12px 14px;
+	font-family: var(--font-mono);
+	font-size: 13px;
+	line-height: 1.55;
+	tab-size: 4;
+	white-space: pre;
+	overflow: auto;
+}
+#cfg-editor:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.cfg-status {
+	min-height: 20px;
+	margin: 10px 0 0;
+	font-size: 13px;
+	font-family: var(--font-mono);
+	color: var(--text-muted);
+}
+.cfg-status.ok { color: var(--status-green); }
+.cfg-status.err { color: var(--danger); }
+.cfg-status.warn { color: var(--warn); }
+
+@media (max-width: 780px) {
+	#cfg-editor { min-height: 320px; font-size: 12px; }
+}
