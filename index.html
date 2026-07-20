@@ -77,6 +77,23 @@
 		</section>
 
 	</div>
+	<section id="config-tab" hidden>
+		  <div class="cfg-toolbar">
+		    <strong>Config.toml</strong>
+		    <span id="cfg-modified" class="cfg-modified" hidden>&#9679; modifié</span>
+		    <span class="cfg-spacer"></span>
+		    <select id="cfg-backups" title="Backups">
+		      <option value="">— Backups —</option>
+		    </select>
+		    <button id="cfg-restore" type="button">Restaurer</button>
+		    <button id="cfg-reload" type="button">Recharger</button>
+		    <button id="cfg-save" type="button" class="cfg-primary">Sauvegarder</button>
+		    <button id="cfg-save-restart" type="button" class="cfg-danger">Sauvegarder + Redémarrer</button>
+		  </div>
+		  <textarea id="cfg-editor" spellcheck="false"
+		            placeholder="# Chargement du Config.toml..."></textarea>
+		  <div id="cfg-status" class="cfg-status"></div>
+	</section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
