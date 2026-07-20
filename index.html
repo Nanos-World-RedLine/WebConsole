@@ -76,24 +76,25 @@
 			</div>
 		</section>
 
+		<!-- ---- Config.toml (traité par vps-agent v3) ---- -->
+		<section id="config-tab" class="panel" hidden>
+			<div class="panel-head cfg-head">
+				<h2>Config.toml <span id="cfg-modified" class="cfg-modified" hidden>&#9679; modifié</span></h2>
+				<div class="btn-row btn-row-wrap">
+					<select id="cfg-backups" class="cfg-select" title="Backups">
+						<option value="">— Backups —</option>
+					</select>
+					<button type="button" id="cfg-restore" class="btn btn-ghost btn-sm">Restaurer</button>
+					<button type="button" id="cfg-reload" class="btn btn-ghost btn-sm">Recharger</button>
+					<button type="button" id="cfg-save" class="btn btn-primary btn-sm">Sauvegarder</button>
+					<button type="button" id="cfg-save-restart" class="btn btn-danger btn-sm">Sauvegarder + Redémarrer</button>
+				</div>
+			</div>
+			<textarea id="cfg-editor" spellcheck="false" placeholder="# Chargement du Config.toml..."></textarea>
+			<p id="cfg-status" class="cfg-status" aria-live="polite"></p>
+		</section>
+
 	</div>
-	<section id="config-tab" hidden>
-		  <div class="cfg-toolbar">
-		    <strong>Config.toml</strong>
-		    <span id="cfg-modified" class="cfg-modified" hidden>&#9679; modifié</span>
-		    <span class="cfg-spacer"></span>
-		    <select id="cfg-backups" title="Backups">
-		      <option value="">— Backups —</option>
-		    </select>
-		    <button id="cfg-restore" type="button">Restaurer</button>
-		    <button id="cfg-reload" type="button">Recharger</button>
-		    <button id="cfg-save" type="button" class="cfg-primary">Sauvegarder</button>
-		    <button id="cfg-save-restart" type="button" class="cfg-danger">Sauvegarder + Redémarrer</button>
-		  </div>
-		  <textarea id="cfg-editor" spellcheck="false"
-		            placeholder="# Chargement du Config.toml..."></textarea>
-		  <div id="cfg-status" class="cfg-status"></div>
-	</section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
