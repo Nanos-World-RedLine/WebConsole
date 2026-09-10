@@ -1,15 +1,5 @@
-/*
- * WebConsole / site / app.js
- * ===========================
- * chose que la clé PUBLIQUE de Supabase ("anon" ou, sur le nouveau format
- * de clés, "publishable" - Settings > API Keys dans le dashboard), qui est
- * conçue pour être publique. Toute la protection réelle vient des règles
- * RLS définies côté base (voir backend/schema.sql) et de l'authentification
- * par compte admin.
- */
-
-const SUPABASE_URL = "https://jcwktlyuacxuimwyqrfu.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_dJaS636nTjdFY9uX7r-kRA_2PgMwwR3";
+const SUPABASE_URL = "https://107-191-62-209.sslip.io";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzg5MDUzNDU2LCJleHAiOjE5NDY3MzM0NTZ9.kWT2jEzsdr_xrzThMbX-JI4RiSMuAcdzHVNfsJunH_Y";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -27,9 +17,7 @@ const logPanel = el("log-panel");
 
 let currentUser = null;
 
-// ============================================================================
 // Authentification
-// ============================================================================
 
 loginForm.addEventListener("submit", async (e) => {
 	e.preventDefault();
@@ -56,8 +44,6 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 		startRealtimeLogs();
 		loadRecentLogs();
 		startStatusPolling();
-		// L'onglet config ne doit JAMAIS pouvoir casser le login : on
-		// l'initialise dans un try/catch isolé.
 		try {
 			configTabInit();
 		} catch (err) {
@@ -74,9 +60,6 @@ function renderAuthState() {
 	const other = authed ? loginScreen : dashboard;
 
 	if (authed) userEmailLabel.textContent = currentUser.email;
-
-	// Ne joue la transition que si l'écran change réellement (évite un
-	// flash inutile au premier chargement quand l'état est déjà correct).
 	if (target.hidden) {
 		switchScreen(other, target);
 	}
@@ -131,9 +114,7 @@ function applyServerStatus(status) {
 		}[status] || "statut inconnu";
 }
 
-// ============================================================================
 // Envoi de commandes et attente du résultat
-// ============================================================================
 //
 // Le serveur nanos world sonde console_commands toutes les quelques
 // secondes (voir Server/Index.lua) : on s'abonne donc au changement de
@@ -192,9 +173,7 @@ function waitForResult(commandId, timeoutMs) {
 	});
 }
 
-// ============================================================================
 // Actions
-// ============================================================================
 
 el("console-form").addEventListener("submit", async (e) => {
 	e.preventDefault();
@@ -240,9 +219,7 @@ el("server-process-restart-btn").addEventListener("click", async (e) => {
 	e.target.disabled = false;
 });
 
-// ============================================================================
 // Journal (logs en temps réel via Supabase Realtime)
-// ============================================================================
 
 async function loadRecentLogs() {
 	const { data } = await supabaseClient
