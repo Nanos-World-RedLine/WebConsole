@@ -194,6 +194,13 @@ el("console-form").addEventListener("submit", async (e) => {
 	input.focus();
 });
 
+el("server-update-btn").addEventListener("click", async () => {
+        if (!confirm("Télécharger la dernière version bleeding-edge via SteamCMD et redémarrer le serveur ?\n\n(Cette opération prend environ 30 à 60 secondes)")) return;
+        appendLocalStatus({ ok: true, message: "Mise à jour lancée, téléchargement SteamCMD en cours..." });
+        const result = await sendCommand("server_update", {}, { target: "host", timeoutMs: 180000 });
+        appendLocalStatus(result);
+});
+
 // ---- Contrôle du processus sur le VPS (target: "host", traité par vps-agent) ----
 
 el("server-start-btn").addEventListener("click", async (e) => {
